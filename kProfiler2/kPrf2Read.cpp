@@ -220,7 +220,7 @@ static bool kPrfIsValidate(PCKPRFHDR pHdr, KU32 cb, FILE *pOut)
         if (pHdr->Hdr32.cb##MemBaseName > (pHdr->Hdr32.cFormatBits == 32 ? cb32 : cb64)) \
         { \
             fprintf(pOut, "cb" #MemBaseName " was expected to be %#x but is %#x. Probably a format change, rebuild.\n", \
-                    (pHdr->Hdr32.cFormatBits == 32 ? cb32 : cb64), pHdr->Hdr32.cb##MemBaseName); \
+                    (unsigned)(pHdr->Hdr32.cFormatBits == 32 ? cb32 : cb64), pHdr->Hdr32.cb##MemBaseName); \
             return false; \
         }\
     } while (0)

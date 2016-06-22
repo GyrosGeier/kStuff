@@ -157,6 +157,8 @@ int64_t kDbgHlpFileSize(PKDBGHLPFILE pFile)
             cbFile = -1;
         kDbgHlpSeek(pFile, offCur);
     }
+    else
+        cbFile = -1;
     return cbFile;
 }
 
