@@ -244,7 +244,7 @@ void kDbgAssertMsg2(const char *pszFormat, ...);
         { \
             kDbgAssertMsg1(#expr, __FILE__, __LINE__, K_FUNCTION); \
             kDbgAssertBreakpoint(); \
-        }
+        } \
     } while (0)
 
 # define kDbgAssertReturn(expr, rcRet) \
@@ -254,7 +254,7 @@ void kDbgAssertMsg2(const char *pszFormat, ...);
             kDbgAssertMsg1(#expr, __FILE__, __LINE__, K_FUNCTION); \
             kDbgAssertBreakpoint(); \
             return (rcRet); \
-        }
+        } \
     } while (0)
 
 # define kDbgAssertMsg(expr, msg) \
@@ -264,7 +264,7 @@ void kDbgAssertMsg2(const char *pszFormat, ...);
             kDbgAssertMsg1(#expr, __FILE__, __LINE__, K_FUNCTION); \
             kDbgAssertMsg2 msg; \
             kDbgAssertBreakpoint(); \
-        }
+        } \
     } while (0)
 
 # define kDbgAssertMsgReturn(expr, msg, rcRet) \
@@ -275,7 +275,7 @@ void kDbgAssertMsg2(const char *pszFormat, ...);
             kDbgAssertMsg2 msg; \
             kDbgAssertBreakpoint(); \
             return (rcRet); \
-        }
+        } \
     } while (0)
 
 #else   /* !KDBG_STRICT */
