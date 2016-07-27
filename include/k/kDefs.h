@@ -293,12 +293,12 @@
 /** @def K_ENDIAN
  * The value of this \#define indicates the target endianness.
  *
- * @remark  It's necessary to define this (or add the necessary dection here)
+ * @remark  It's necessary to define this (or add the necessary deduction here)
  *          on bi-endian architectures.
  */
 #ifndef K_ENDIAN
   /* use K_ARCH if possible. */
-# if K_ARCH_END != K_ENDIAN_BI
+# if K_ARCH_ENDIAN != K_ENDIAN_BI
 #  define K_ENDIAN K_ARCH_ENDIAN
 # else
 #  error "Port Me or define K_ENDIAN."

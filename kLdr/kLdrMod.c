@@ -152,6 +152,7 @@ static int kldrModOpenFromRdrSelectImageFromFAT(PKRDR pRdr, KU32 fFlags, KCPUARC
     KU32        cArchs;
     KU32        iArch;
     int         rc;
+    K_NOREF(fFlags);
 
     /* Read fat_header_t::nfat_arch. */
     rc = kRdrRead(pRdr, &cArchs, sizeof(cArchs), off);
