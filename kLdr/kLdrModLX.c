@@ -2135,6 +2135,7 @@ static KI32 kldrModLXDoCall(KUPTR uEntrypoint, KUPTR uHandle, KU32 uOp, void *pv
 # else
 #  error "port me!"
 # endif
+    K_NOREF(pvReserved);
     return rc;
 
 #else
