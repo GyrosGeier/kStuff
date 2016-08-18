@@ -2490,23 +2490,25 @@ static int kldrModMachOUnmap(PKLDRMOD pMod)
 
 
 /** @copydoc kLdrModAllocTLS */
-static int kldrModMachOAllocTLS(PKLDRMOD pMod)
+static int kldrModMachOAllocTLS(PKLDRMOD pMod, void *pvMapping)
 {
     PKLDRMODMACHO pModMachO = (PKLDRMODMACHO)pMod->pvData;
 
     /*
      * Mapped?
      */
-    if (!pModMachO->pvMapping)
+    if (   pvMapping == KLDRMOD_INT_MAP
+        && !pModMachO->pvMapping )
         return KLDR_ERR_NOT_MAPPED;
     return 0;
 }
 
 
 /** @copydoc kLdrModFreeTLS */
-static void kldrModMachOFreeTLS(PKLDRMOD pMod)
+static void kldrModMachOFreeTLS(PKLDRMOD pMod, void *pvMapping)
 {
     K_NOREF(pMod);
+    K_NOREF(pvMapping);
 }
 
 
@@ -3454,30 +3456,33 @@ static int kldrModMachOMapVirginBits(PKLDRMODMACHO pModMachO)
 
 
 /** @copydoc kLdrModCallInit */
-static int kldrModMachOCallInit(PKLDRMOD pMod, KUPTR uHandle)
+static int kldrModMachOCallInit(PKLDRMOD pMod, void *pvMapping, KUPTR uHandle)
 {
     /* later */
     K_NOREF(pMod);
+    K_NOREF(pvMapping);
     K_NOREF(uHandle);
     return 0;
 }
 
 
 /** @copydoc kLdrModCallTerm */
-static int kldrModMachOCallTerm(PKLDRMOD pMod, KUPTR uHandle)
+static int kldrModMachOCallTerm(PKLDRMOD pMod, void *pvMapping, KUPTR uHandle)
 {
     /* later */
     K_NOREF(pMod);
+    K_NOREF(pvMapping);
     K_NOREF(uHandle);
     return 0;
 }
 
 
 /** @copydoc kLdrModCallThread */
-static int kldrModMachOCallThread(PKLDRMOD pMod, KUPTR uHandle, unsigned fAttachingOrDetaching)
+static int kldrModMachOCallThread(PKLDRMOD pMod, void *pvMapping, KUPTR uHandle, unsigned fAttachingOrDetaching)
 {
     /* Relevant for Mach-O? */
     K_NOREF(pMod);
+    K_NOREF(pvMapping);
     K_NOREF(uHandle);
     K_NOREF(fAttachingOrDetaching);
     return 0;

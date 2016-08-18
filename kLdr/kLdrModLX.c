@@ -127,7 +127,7 @@ static int kldrModLXDoIterDataUnpacking(KU8 *pbDst, const KU8 *pbSrc, int cbSrc)
 static int kldrModLXDoIterData2Unpacking(KU8 *pbDst, const KU8 *pbSrc, int cbSrc);
 static void kLdrModLXMemCopyW(KU8 *pbDst, const KU8 *pbSrc, int cb);
 static int kldrModLXDoProtect(PKLDRMODLX pModLX, void *pvBits, unsigned fUnprotectOrProtect);
-static int kldrModLXDoCallDLL(PKLDRMODLX pModLX, unsigned uOp, KUPTR uHandle);
+static int kldrModLXDoCallDLL(PKLDRMODLX pModLX, void *pvMapping, unsigned uOp, KUPTR uHandle);
 static int kldrModLXDoForwarderQuery(PKLDRMODLX pModLX, const struct e32_entry *pEntry,
                                      PFNKLDRMODGETIMPORT pfnGetForwarder, void *pvUser, PKLDRADDR puValue, KU32 *pfKind);
 static int kldrModLXDoLoadFixupSection(PKLDRMODLX pModLX);
@@ -1936,22 +1936,24 @@ static int kldrModLXUnmap(PKLDRMOD pMod)
 
 
 /** @copydoc kLdrModAllocTLS */
-static int kldrModLXAllocTLS(PKLDRMOD pMod)
+static int kldrModLXAllocTLS(PKLDRMOD pMod, void *pvMapping)
 {
     PKLDRMODLX  pModLX = (PKLDRMODLX)pMod->pvData;
 
     /* no tls, just do the error checking. */
-    if (!pModLX->pvMapping)
+    if (   pvMapping == KLDRMOD_INT_MAP
+        && pModLX->pvMapping)
         return KLDR_ERR_NOT_MAPPED;
     return 0;
 }
 
 
 /** @copydoc kLdrModFreeTLS */
-static void kldrModLXFreeTLS(PKLDRMOD pMod)
+static void kldrModLXFreeTLS(PKLDRMOD pMod, void *pvMapping)
 {
     /* no tls. */
     K_NOREF(pMod);
+    K_NOREF(pvMapping);
 
 }
 
@@ -2026,7 +2028,7 @@ static int kldrModLXFixupMapping(PKLDRMOD pMod, PFNKLDRMODGETIMPORT pfnGetImport
 
 
 /** @copydoc kLdrModCallInit */
-static int kldrModLXCallInit(PKLDRMOD pMod, KUPTR uHandle)
+static int kldrModLXCallInit(PKLDRMOD pMod, void *pvMapping, KUPTR uHandle)
 {
     PKLDRMODLX pModLX = (PKLDRMODLX)pMod->pvData;
     int rc;
@@ -2034,14 +2036,18 @@ static int kldrModLXCallInit(PKLDRMOD pMod, KUPTR uHandle)
     /*
      * Mapped?
      */
-    if (!pModLX->pvMapping)
-        return KLDR_ERR_NOT_MAPPED;
+    if (pvMapping == KLDRMOD_INT_MAP)
+    {
+        pvMapping = pModLX->pvMapping;
+        if (!pvMapping)
+            return KLDR_ERR_NOT_MAPPED;
+    }
 
     /*
      * Do TLS callbacks first and then call the init/term function if it's a DLL.
      */
     if ((pModLX->Hdr.e32_mflags & E32MODMASK) == E32MODDLL)
-        rc = kldrModLXDoCallDLL(pModLX, 0 /* attach */, uHandle);
+        rc = kldrModLXDoCallDLL(pModLX, pvMapping, 0 /* attach */, uHandle);
     else
         rc = 0;
     return rc;
@@ -2054,10 +2060,11 @@ static int kldrModLXCallInit(PKLDRMOD pMod, KUPTR uHandle)
  * @returns 0 on success.
  * @returns KLDR_ERR_MODULE_INIT_FAILED  or KLDR_ERR_THREAD_ATTACH_FAILED on failure.
  * @param   pModLX          The LX module interpreter instance.
+ * @param   pvMapping       The module mapping to use (resolved).
  * @param   uOp             The operation (DLL_*).
  * @param   uHandle         The module handle to present.
  */
-static int kldrModLXDoCallDLL(PKLDRMODLX pModLX, unsigned uOp, KUPTR uHandle)
+static int kldrModLXDoCallDLL(PKLDRMODLX pModLX, void *pvMapping, unsigned uOp, KUPTR uHandle)
 {
     int rc;
 
@@ -2071,7 +2078,7 @@ static int kldrModLXDoCallDLL(PKLDRMODLX pModLX, unsigned uOp, KUPTR uHandle)
     /*
      * Invoke the entrypoint and convert the boolean result to a kLdr status code.
      */
-    rc = kldrModLXDoCall((KUPTR)pModLX->pvMapping
+    rc = kldrModLXDoCall((KUPTR)pvMapping
                          + (KUPTR)pModLX->pMod->aSegments[pModLX->Hdr.e32_startobj - 1].RVA
                          + pModLX->Hdr.e32_eip,
                          uHandle, uOp, NULL);
@@ -2149,31 +2156,36 @@ static KI32 kldrModLXDoCall(KUPTR uEntrypoint, KUPTR uHandle, KU32 uOp, void *pv
 
 
 /** @copydoc kLdrModCallTerm */
-static int kldrModLXCallTerm(PKLDRMOD pMod, KUPTR uHandle)
+static int kldrModLXCallTerm(PKLDRMOD pMod, void *pvMapping, KUPTR uHandle)
 {
     PKLDRMODLX  pModLX = (PKLDRMODLX)pMod->pvData;
 
     /*
      * Mapped?
      */
-    if (!pModLX->pvMapping)
-        return KLDR_ERR_NOT_MAPPED;
+    if (pvMapping == KLDRMOD_INT_MAP)
+    {
+        pvMapping = pModLX->pvMapping;
+        if (!pvMapping)
+            return KLDR_ERR_NOT_MAPPED;
+    }
 
     /*
      * Do the call.
      */
     if ((pModLX->Hdr.e32_mflags & E32MODMASK) == E32MODDLL)
-        kldrModLXDoCallDLL(pModLX, 1 /* detach */, uHandle);
+        kldrModLXDoCallDLL(pModLX, pvMapping, 1 /* detach */, uHandle);
 
     return 0;
 }
 
 
 /** @copydoc kLdrModCallThread */
-static int kldrModLXCallThread(PKLDRMOD pMod, KUPTR uHandle, unsigned fAttachingOrDetaching)
+static int kldrModLXCallThread(PKLDRMOD pMod, void *pvMapping, KUPTR uHandle, unsigned fAttachingOrDetaching)
 {
     /* no thread attach/detach callout. */
     K_NOREF(pMod);
+    K_NOREF(pvMapping);
     K_NOREF(uHandle);
     K_NOREF(fAttachingOrDetaching);
     return 0;

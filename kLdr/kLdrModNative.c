@@ -144,6 +144,11 @@ typedef struct KLDRMODNATIVE
 *******************************************************************************/
 static KI32 kldrModNativeNumberOfImports(PKLDRMOD pMod, const void *pvBits);
 
+/*********************************************************************************************************************************
+*   Global Variables                                                                                                             *
+*********************************************************************************************************************************/
+extern KLDRMODOPS g_kLdrModNativeOps;
+
 
 
 /**
@@ -156,7 +161,8 @@ static KI32 kldrModNativeNumberOfImports(PKLDRMOD pMod, const void *pvBits);
  * @param   offNewHdr       The offset of the new header in MZ files. -1 if not found.
  * @param   ppMod           Where to store the module instance pointer.
  */
-static int kldrModNativeCreate(PCKLDRMODOPS pOps, PKRDR pRdr, KLDRFOFF offNewHdr, PPKLDRMOD ppMod)
+static int kldrModNativeCreate(PCKLDRMODOPS pOps, PKRDR pRdr, KU32 fFlags, KCPUARCH enmCpuArch,
+                               KLDRFOFF offNewHdr, PPKLDRMOD ppMod)
 {
     int rc = kLdrModOpenNative(kRdrName(pRdr), ppMod);
     if (rc)
@@ -509,6 +515,8 @@ int kLdrModOpenNativeByHandle(KUPTR uHandle, PPKLDRMOD ppMod)
     /*
      * We're done.
      */
+    pMod->u32Magic = KLDRMOD_MAGIC;
+    pMod->pOps = &g_kLdrModNativeOps;
     *ppMod = pMod;
     return 0;
 }
@@ -942,12 +950,11 @@ static int kldrModNativeEnumDbgInfo(PKLDRMOD pMod, const void *pvBits, PFNKLDREN
         }
 
         rc = pfnCallback(pMod, iDbgInfo,
-                         enmDbgInfoType, pDbgDir->MajorVersion, pDbgDir->MinorVersion,
+                         enmDbgInfoType, pDbgDir->MajorVersion, pDbgDir->MinorVersion, NULL /*pszPartNm*/,
                          pDbgDir->PointerToRawData ? pDbgDir->PointerToRawData : -1,
                          pDbgDir->AddressOfRawData ? pDbgDir->AddressOfRawData : NIL_KLDRADDR,
                          pDbgDir->SizeOfData,
-                         NULL,
-                         pvUser);
+                         NULL /*pszExtFile*/, pvUser);
         if (rc)
             break;
 
@@ -1015,14 +1022,14 @@ static int kldrModNativeUnmap(PKLDRMOD pMod)
 
 
 /** @copydoc kLdrModAllocTLS */
-static int kldrModNativeAllocTLS(PKLDRMOD pMod)
+static int kldrModNativeAllocTLS(PKLDRMOD pMod, void *pvMapping)
 {
     return 0;
 }
 
 
 /** @copydoc kLdrModFreeTLS */
-static void kldrModNativeFreeTLS(PKLDRMOD pMod)
+static void kldrModNativeFreeTLS(PKLDRMOD pMod, void *pvMapping)
 {
 }
 
@@ -1042,21 +1049,21 @@ static int kldrModNativeFixupMapping(PKLDRMOD pMod, PFNKLDRMODGETIMPORT pfnGetIm
 
 
 /** @copydoc kLdrModCallInit */
-static int kldrModNativeCallInit(PKLDRMOD pMod, KUPTR uHandle)
+static int kldrModNativeCallInit(PKLDRMOD pMod, void *pvMapping, KUPTR uHandle)
 {
     return 0;
 }
 
 
 /** @copydoc kLdrModCallTerm */
-static int kldrModNativeCallTerm(PKLDRMOD pMod, KUPTR uHandle)
+static int kldrModNativeCallTerm(PKLDRMOD pMod, void *pvMapping, KUPTR uHandle)
 {
     return 0;
 }
 
 
 /** @copydoc kLdrModCallThread */
-static int kldrModNativeCallThread(PKLDRMOD pMod, KUPTR uHandle, unsigned fAttachingOrDetaching)
+static int kldrModNativeCallThread(PKLDRMOD pMod, void *pvMapping, KUPTR uHandle, unsigned fAttachingOrDetaching)
 {
     return 0;
 }

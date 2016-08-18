@@ -1297,8 +1297,9 @@ static int krdrFileCreate(PPKRDR ppRdr, const char *pszFilename)
     pRdrFile->File = File;
     pRdrFile->cb = cb;
     pRdrFile->off = 0;
-    pRdrFile->cMappings = 0;
     pRdrFile->cPreps = 0;
+    pRdrFile->cMappings = 0;
+    pRdrFile->pvMapping = NULL;
     kHlpMemCopy(&pRdrFile->szFilename[0], szFilename, cchFilename + 1);
 
     *ppRdr = &pRdrFile->Core;
