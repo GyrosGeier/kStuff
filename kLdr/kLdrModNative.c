@@ -238,7 +238,7 @@ int kLdrModOpenNative(const char *pszFilename, PPKLDRMOD ppMod)
 int kLdrModOpenNativeByHandle(KUPTR uHandle, PPKLDRMOD ppMod)
 {
     KSIZE cb;
-    KSIZE cchFilename;
+    KU32 cchFilename;
     KU32 cSegments;
     PKLDRMOD pMod;
     PKLDRMODNATIVE pModNative;
@@ -308,7 +308,7 @@ int kLdrModOpenNativeByHandle(KUPTR uHandle, PPKLDRMOD ppMod)
     /*
      * Calc the instance size, allocate and initialize it.
      */
-    cchFilename = kHlpStrLen(szFilename);
+    cchFilename = (KU32)kHlpStrLen(szFilename);
     cb = K_ALIGN_Z(sizeof(KLDRMODNATIVE), 16)
        + K_OFFSETOF(KLDRMOD, aSegments[cSegments])
        + cchFilename + 1;
@@ -326,7 +326,7 @@ int kLdrModOpenNativeByHandle(KUPTR uHandle, PPKLDRMOD ppMod)
     pMod->pszFilename = (char *)&pMod->aSegments[pMod->cSegments];
     kHlpMemCopy((char *)pMod->pszFilename, szFilename, cchFilename + 1);
     pMod->pszName = kHlpGetFilename(pMod->pszFilename); /** @todo get soname */
-    pMod->cchName = cchFilename - (pMod->pszName - pMod->pszFilename);
+    pMod->cchName = cchFilename - (KU32)(pMod->pszName - pMod->pszFilename);
     pMod->fFlags = 0;
 #if defined(__i386__) || defined(__X86__) || defined(_M_IX86)
     pMod->enmCpu = KCPU_I386;
@@ -397,36 +397,36 @@ int kLdrModOpenNativeByHandle(KUPTR uHandle, PPKLDRMOD ppMod)
         pMod->aSegments[0].cbMapped = paShdrs[0].VirtualAddress;
     else
         pMod->aSegments[0].cbMapped = pNtHdrs->OptionalHeader.SizeOfHeaders;
-    pMod->aSegments[0].MapAddress = 0;
+    pMod->aSegments[0].MapAddress = uHandle;
 
     /* The section headers. */
     for (i = 0; i < pNtHdrs->FileHeader.NumberOfSections; i++)
     {
         const char *pch;
+        KU32        cchSegName;
 
         /* unused */
         pMod->aSegments[i + 1].pvUser = NULL;
-        pMod->aSegments[i + 1].MapAddress = 0;
 
         /* name */
         pMod->aSegments[i + 1].pchName = pch = &paShdrs[i].Name[0];
-        cb = IMAGE_SIZEOF_SHORT_NAME;
-        while (     cb > 0
-               &&   (pch[cb - 1] == ' ' || pch[cb - 1] == '\0'))
-            cb--;
-        pMod->aSegments[i + 1].cchName = cb;
+        cchSegName = IMAGE_SIZEOF_SHORT_NAME;
+        while (    cchSegName > 0
+               && (pch[cchSegName - 1] == ' ' || pch[cchSegName - 1] == '\0'))
+            cchSegName--;
+        pMod->aSegments[i + 1].cchName = cchSegName;
 
         /* size and addresses */
         if (!(paShdrs[i].Characteristics & IMAGE_SCN_TYPE_NOLOAD))
         {
             pMod->aSegments[i + 1].cb          = paShdrs[i].Misc.VirtualSize;
-            pMod->aSegments[i + 1].LinkAddress = paShdrs[i].VirtualAddress
-                                               + pNtHdrs->OptionalHeader.ImageBase;
             pMod->aSegments[i + 1].RVA         = paShdrs[i].VirtualAddress;
+            pMod->aSegments[i + 1].LinkAddress = paShdrs[i].VirtualAddress + pNtHdrs->OptionalHeader.ImageBase;
+            pMod->aSegments[i + 1].MapAddress  = paShdrs[i].VirtualAddress + uHandle;
             pMod->aSegments[i + 1].cbMapped    = paShdrs[i].Misc.VirtualSize;
             if (i + 2 < pMod->cSegments)
-                pMod->aSegments[i + 1].cbMapped= paShdrs[i + 1].VirtualAddress
-                                               - paShdrs[i].VirtualAddress;
+                pMod->aSegments[i + 1].cbMapped = paShdrs[i + 1].VirtualAddress
+                                                - paShdrs[i].VirtualAddress;
         }
         else
         {
@@ -434,14 +434,15 @@ int kLdrModOpenNativeByHandle(KUPTR uHandle, PPKLDRMOD ppMod)
             pMod->aSegments[i + 1].cbMapped    = 0;
             pMod->aSegments[i + 1].LinkAddress = NIL_KLDRADDR;
             pMod->aSegments[i + 1].RVA         = 0;
+            pMod->aSegments[i + 1].MapAddress  = 0;
         }
 
         /* file location */
         pMod->aSegments[i + 1].offFile = paShdrs[i].PointerToRawData;
-        pMod->aSegments[i + 1].cbFile = paShdrs[i].SizeOfRawData;
+        pMod->aSegments[i + 1].cbFile  = paShdrs[i].SizeOfRawData;
         if (    pMod->aSegments[i + 1].cbMapped > 0 /* if mapped */
             &&  (KLDRSIZE)pMod->aSegments[i + 1].cbFile > pMod->aSegments[i + 1].cbMapped)
-            pMod->aSegments[i + 1].cbFile = pMod->aSegments[i + 1].cbMapped;
+            pMod->aSegments[i + 1].cbFile = (KLDRFOFF)pMod->aSegments[i + 1].cbMapped;
 
         /* protection */
         switch (  paShdrs[i].Characteristics
