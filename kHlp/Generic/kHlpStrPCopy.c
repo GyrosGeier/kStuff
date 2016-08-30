@@ -38,7 +38,7 @@ KHLP_DECL(char *) kHlpStrPCopy(char *pszDst, const char *pszSrc)
 {
     char ch;
     do
-        *pszDst++ = ch = *pszSrc;
+        *pszDst++ = ch = *pszSrc++;
     while (ch);
     return pszDst - 1;
 }
