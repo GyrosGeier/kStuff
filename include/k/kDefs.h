@@ -380,7 +380,7 @@
 # if defined(__GNUC__)
 #  define K_INLINE              static __inline__
 # elif defined(_MSC_VER)
-#  define K_INLINE              static _Inline
+#  define K_INLINE              static __inline
 # else
 #  error "Port Me"
 # endif
