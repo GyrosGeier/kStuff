@@ -4,7 +4,7 @@
  */
 
 /*
- * Copyright (c) 2006-2007 Knut St. Osmundsen <bird-kStuff-spamix@anduin.net>
+ * Copyright (c) 2006-2016 Knut St. Osmundsen <bird-kStuff-spamix@anduin.net>
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,7 @@
  */
 KHLP_DECL(char *) kHlpGetFilename(const char *pszFilename)
 {
-    const char *pszLast = NULL;
+    const char *pszLast = pszFilename;
     for (;;)
     {
         char ch = *pszFilename;
@@ -63,9 +63,10 @@ KHLP_DECL(char *) kHlpGetFilename(const char *pszFilename)
             pszLast = pszFilename;
         }
 #endif
-        if (!ch)
-            return (char *)(pszLast ? pszLast : pszFilename);
-        pszFilename++;
+        if (ch)
+            pszFilename++;
+        else
+            return (char *)pszLast;
     }
 }
 

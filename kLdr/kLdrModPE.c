@@ -335,19 +335,23 @@ static int kldrModPEDoCreate(PKRDR pRdr, KLDRFOFF offNewHdr, PKLDRMODPE *ppModPE
         /* name */
         pMod->aSegments[i + 1].pchName = pch = (const char *)&pModPE->aShdrs[i].Name[0];
         cb = IMAGE_SIZEOF_SHORT_NAME;
-        while (     cb > 0
-               &&   (pch[cb - 1] == ' ' || pch[cb - 1] == '\0'))
+        while (   cb > 0
+               && (pch[cb - 1] == ' ' || pch[cb - 1] == '\0'))
             cb--;
         pMod->aSegments[i + 1].cchName = cb;
 
         /* size and addresses */
         if (!(pModPE->aShdrs[i].Characteristics & IMAGE_SCN_TYPE_NOLOAD))
         {
+            /* Kluge to deal with wlink ".reloc" sections that has a VirtualSize of 0 bytes. */
+            KU32 cb = pModPE->aShdrs[i].Misc.VirtualSize;
+            if (!cb)
+                cb = K_ALIGN_Z(pModPE->aShdrs[i].SizeOfRawData, pModPE->Hdrs.OptionalHeader.SectionAlignment);
             pMod->aSegments[i + 1].cb          = pModPE->aShdrs[i].Misc.VirtualSize;
             pMod->aSegments[i + 1].LinkAddress = pModPE->aShdrs[i].VirtualAddress
                                                + pModPE->Hdrs.OptionalHeader.ImageBase;
             pMod->aSegments[i + 1].RVA         = pModPE->aShdrs[i].VirtualAddress;
-            pMod->aSegments[i + 1].cbMapped    = pModPE->aShdrs[i].Misc.VirtualSize;
+            pMod->aSegments[i + 1].cbMapped    = cb;
             if (i + 2 < pMod->cSegments)
                 pMod->aSegments[i + 1].cbMapped= pModPE->aShdrs[i + 1].VirtualAddress
                                                - pModPE->aShdrs[i].VirtualAddress;
@@ -362,7 +366,7 @@ static int kldrModPEDoCreate(PKRDR pRdr, KLDRFOFF offNewHdr, PKLDRMODPE *ppModPE
 
         /* file location */
         pMod->aSegments[i + 1].offFile = pModPE->aShdrs[i].PointerToRawData;
-        pMod->aSegments[i + 1].cbFile = pModPE->aShdrs[i].SizeOfRawData;
+        pMod->aSegments[i + 1].cbFile  = pModPE->aShdrs[i].SizeOfRawData;
         if (    pMod->aSegments[i + 1].cbMapped > 0 /* if mapped */
             &&  (KLDRSIZE)pMod->aSegments[i + 1].cbFile > pMod->aSegments[i + 1].cbMapped)
             pMod->aSegments[i + 1].cbFile = pMod->aSegments[i + 1].cbMapped;
