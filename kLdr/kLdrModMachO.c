@@ -218,10 +218,10 @@ static int  kldrModMachOMapVirginBits(PKLDRMODMACHO pModMachO);
 
 static int  kldrModMachODoQuerySymbol32Bit(PKLDRMODMACHO pModMachO, const macho_nlist_32_t *paSyms, KU32 cSyms, const char *pchStrings,
                                            KU32 cchStrings, KLDRADDR BaseAddress, KU32 iSymbol, const char *pchSymbol,
-                                           KSIZE cchSymbol, PKLDRADDR puValue, KU32 *pfKind);
+                                           KU32 cchSymbol, PKLDRADDR puValue, KU32 *pfKind);
 static int  kldrModMachODoQuerySymbol64Bit(PKLDRMODMACHO pModMachO, const macho_nlist_64_t *paSyms, KU32 cSyms, const char *pchStrings,
                                            KU32 cchStrings, KLDRADDR BaseAddress, KU32 iSymbol, const char *pchSymbol,
-                                           KSIZE cchSymbol, PKLDRADDR puValue, KU32 *pfKind);
+                                           KU32 cchSymbol, PKLDRADDR puValue, KU32 *pfKind);
 static int  kldrModMachODoEnumSymbols32Bit(PKLDRMODMACHO pModMachO, const macho_nlist_32_t *paSyms, KU32 cSyms,
                                            const char *pchStrings, KU32 cchStrings, KLDRADDR BaseAddress,
                                            KU32 fFlags, PFNKLDRMODENUMSYMS pfnCallback, void *pvUser);
@@ -407,11 +407,11 @@ static int kldrModMachODoCreate(PKRDR pRdr, KLDRFOFF offImage, KU32 fOpenFlags, 
     pMod->pRdr = pRdr;
     pMod->pOps = NULL;      /* set upon success. */
     pMod->cSegments = cSegments;
-    pMod->cchFilename = cchFilename;
+    pMod->cchFilename = (KU32)cchFilename;
     pMod->pszFilename = (char *)&pMod->aSegments[pMod->cSegments];
     kHlpMemCopy((char *)pMod->pszFilename, kRdrName(pRdr), cchFilename + 1);
     pMod->pszName = kHlpGetFilename(pMod->pszFilename);
-    pMod->cchName = cchFilename - (pMod->pszName - pMod->pszFilename);
+    pMod->cchName = (KU32)(cchFilename - (pMod->pszName - pMod->pszFilename));
     pMod->fFlags = 0;
     switch (s.Hdr32.cputype)
     {
@@ -570,7 +570,7 @@ static int  kldrModMachOPreParseLoadCommands(KU8 *pbLoadCommands, const mach_hea
     const KU64 cbFile = kRdrSize(pRdr) - offImage;
     KU32 cSegments = 0;
     KU32 cSections = 0;
-    KU32 cbStringPool = 0;
+    KSIZE cbStringPool = 0;
     KU32 cLeft = pHdr->ncmds;
     KU32 cbLeft = pHdr->sizeofcmds;
     KU8 *pb = pbLoadCommands;
@@ -1083,7 +1083,7 @@ static int  kldrModMachOPreParseLoadCommands(KU8 *pbLoadCommands, const mach_hea
 
     *pcSegments = cSegments;
     *pcSections = cSections;
-    *pcbStringPool = cbStringPool;
+    *pcbStringPool = (KU32)cbStringPool;
 
     return 0;
 }
@@ -1153,7 +1153,7 @@ static int  kldrModMachOParseLoadCommands(PKLDRMODMACHO pModMachO, char *pbStrin
                         *pbStringPool++ = '.'; \
                         kHlpMemCopy(pbStringPool, a_achName2, cchName2); \
                         pbStringPool += cchName2; \
-                        pDstSeg->cchName += cchName2; \
+                        pDstSeg->cchName += (KU32)cchName2; \
                     } \
                     *pbStringPool++ = '\0'; \
                     pDstSeg->SelFlat = 0; \
@@ -1165,8 +1165,8 @@ static int  kldrModMachOParseLoadCommands(PKLDRMODMACHO pModMachO, char *pbStrin
                     pDstSeg->LinkAddress = (a_SegAddr); \
                     if (a_fFileBits) \
                     { \
-                        pDstSeg->offFile = (a_offFile) + pModMachO->offImage; \
-                        pDstSeg->cbFile  = (a_cbFile); \
+                        pDstSeg->offFile = (KLDRFOFF)((a_offFile) + pModMachO->offImage); \
+                        pDstSeg->cbFile  = (KLDRFOFF)(a_cbFile); \
                     } \
                     else \
                     { \
@@ -1177,15 +1177,15 @@ static int  kldrModMachOParseLoadCommands(PKLDRMODMACHO pModMachO, char *pbStrin
                     pDstSeg->cbMapped = 0; \
                     pDstSeg->MapAddress = 0; \
                     \
-                    pSegExtra->iOrgSegNo = pSegExtra - &pModMachO->aSegments[0]; \
+                    pSegExtra->iOrgSegNo = (KU32)(pSegExtra - &pModMachO->aSegments[0]); \
                     pSegExtra->cSections = 0; \
                     pSegExtra->paSections = pSectExtra; \
                 } while (0)
 
-                /* Closes the new segment - parter of NEW_SEGMENT. */
+                /* Closes the new segment - part of NEW_SEGMENT. */
                 #define CLOSE_SEGMENT() \
                 do { \
-                    pSegExtra->cSections = pSectExtra - pSegExtra->paSections; \
+                    pSegExtra->cSections = (KU32)(pSectExtra - pSegExtra->paSections); \
                     pSegExtra++; \
                     pDstSeg++; \
                 } while (0)
@@ -1253,7 +1253,7 @@ static int  kldrModMachOParseLoadCommands(PKLDRMODMACHO pModMachO, char *pbStrin
                         else \
                             pSectExtra->offFixups = -1; \
                         pSectExtra->fFlags = pSect->flags; \
-                        pSectExtra->iSegment = pSegExtra - &pModMachO->aSegments[0]; \
+                        pSectExtra->iSegment = (KU32)(pSegExtra - &pModMachO->aSegments[0]); \
                         pSectExtra->pvMachoSection = pSect; \
                         \
                         /* Update the segment alignment, if we're not skipping it. */ \
@@ -1404,10 +1404,10 @@ static int  kldrModMachOParseLoadCommands(PKLDRMODMACHO pModMachO, char *pbStrin
      */
     if (pModMachO->fMakeGot)
     {
-        KSIZE cbPtr = (   pModMachO->Hdr.magic == IMAGE_MACHO32_SIGNATURE
-                       || pModMachO->Hdr.magic == IMAGE_MACHO32_SIGNATURE_OE)
-                    ? sizeof(KU32)
-                    : sizeof(KU64);
+        KU32 cbPtr = (   pModMachO->Hdr.magic == IMAGE_MACHO32_SIGNATURE
+                      || pModMachO->Hdr.magic == IMAGE_MACHO32_SIGNATURE_OE)
+                   ? sizeof(KU32)
+                   : sizeof(KU64);
         KU32 cbGot = pModMachO->cSymbols * cbPtr;
         KU32 cbJmpStubs;
 
@@ -1701,11 +1701,11 @@ static int kldrModMachOQuerySymbol(PKLDRMOD pMod, const void *pvBits, KLDRADDR B
                 ||  pModMachO->Hdr.magic == IMAGE_MACHO32_SIGNATURE_OE)
                 rc = kldrModMachODoQuerySymbol32Bit(pModMachO, (macho_nlist_32_t *)pModMachO->pvaSymbols, pModMachO->cSymbols,
                                                     pModMachO->pchStrings, pModMachO->cchStrings, BaseAddress, iSymbol, pchSymbol,
-                                                    cchSymbol, puValue, pfKind);
+                                                    (KU32)cchSymbol, puValue, pfKind);
             else
                 rc = kldrModMachODoQuerySymbol64Bit(pModMachO, (macho_nlist_64_t *)pModMachO->pvaSymbols, pModMachO->cSymbols,
                                                     pModMachO->pchStrings, pModMachO->cchStrings, BaseAddress, iSymbol, pchSymbol,
-                                                    cchSymbol, puValue, pfKind);
+                                                    (KU32)cchSymbol, puValue, pfKind);
         }
 
         /*
@@ -1749,9 +1749,9 @@ static int kldrModMachOQuerySymbol(PKLDRMOD pMod, const void *pvBits, KLDRADDR B
  * @param   puValue     See kLdrModQuerySymbol.
  * @param   pfKind      See kLdrModQuerySymbol.
  */
-static int kldrModMachODoQuerySymbol32Bit(PKLDRMODMACHO pModMachO, const macho_nlist_32_t *paSyms, KU32 cSyms, const char *pchStrings,
-                                          KU32 cchStrings, KLDRADDR BaseAddress, KU32 iSymbol, const char *pchSymbol, KSIZE cchSymbol,
-                                          PKLDRADDR puValue, KU32 *pfKind)
+static int kldrModMachODoQuerySymbol32Bit(PKLDRMODMACHO pModMachO, const macho_nlist_32_t *paSyms, KU32 cSyms,
+                                          const char *pchStrings, KU32 cchStrings, KLDRADDR BaseAddress, KU32 iSymbol,
+                                          const char *pchSymbol, KU32 cchSymbol, PKLDRADDR puValue, KU32 *pfKind)
 {
     /*
      * Find a valid symbol matching the search criteria.
@@ -1877,9 +1877,9 @@ static int kldrModMachODoQuerySymbol32Bit(PKLDRMODMACHO pModMachO, const macho_n
  * @param   puValue     See kLdrModQuerySymbol.
  * @param   pfKind      See kLdrModQuerySymbol.
  */
-static int kldrModMachODoQuerySymbol64Bit(PKLDRMODMACHO pModMachO, const macho_nlist_64_t *paSyms, KU32 cSyms, const char *pchStrings,
-                                          KU32 cchStrings, KLDRADDR BaseAddress, KU32 iSymbol, const char *pchSymbol, KSIZE cchSymbol,
-                                          PKLDRADDR puValue, KU32 *pfKind)
+static int kldrModMachODoQuerySymbol64Bit(PKLDRMODMACHO pModMachO, const macho_nlist_64_t *paSyms, KU32 cSyms,
+                                          const char *pchStrings, KU32 cchStrings, KLDRADDR BaseAddress, KU32 iSymbol,
+                                          const char *pchSymbol, KU32 cchSymbol, PKLDRADDR puValue, KU32 *pfKind)
 {
     /*
      * Find a valid symbol matching the search criteria.
@@ -3597,7 +3597,7 @@ static int kldrModMachOMakeGOT(PKLDRMODMACHO pModMachO, void *pvBits, KLDRADDR N
                     PKLDRMODMACHOSECT pSymSect;
                     KLDRMODMACHO_CHECK_RETURN((KU32)paSyms[iSym].n_sect - 1 <= pModMachO->cSections, KLDR_ERR_MACHO_BAD_SYMBOL);
                     pSymSect = &pModMachO->paSections[paSyms[iSym].n_sect - 1];
-                    paGOT[iSym] = paSyms[iSym].n_value - pSymSect->LinkAddress + pSymSect->RVA + NewBaseAddress;
+                    paGOT[iSym] = (KU32)(paSyms[iSym].n_value - pSymSect->LinkAddress + pSymSect->RVA + NewBaseAddress);
                     break;
                 }
 
@@ -3653,7 +3653,7 @@ static int kldrModMachOMakeGOT(PKLDRMODMACHO pModMachO, void *pvBits, KLDRADDR N
                     }       Tmpl;
 
                     /* create the template. */
-                    off = pModMachO->GotRVA - (pModMachO->JmpStubsRVA + 6);
+                    off = (KI32)(pModMachO->GotRVA - (pModMachO->JmpStubsRVA + 6));
                     Tmpl.ab[0] = 0xff; /* jmp [GOT-entry wrt RIP] */
                     Tmpl.ab[1] = 0x25;
                     Tmpl.ab[2] =  off        & 0xff;
