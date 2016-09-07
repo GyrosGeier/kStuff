@@ -1374,7 +1374,7 @@ static int  kldrModMachOParseLoadCommands(PKLDRMODMACHO pModMachO, char *pbStrin
         {
 
             cb = pDstSeg[1].RVA - pDstSeg->RVA;
-            pDstSeg->cbMapped = (KSIZE)cb == cb ? cb : KSIZE_MAX;
+            pDstSeg->cbMapped = (KSIZE)cb == cb ? (KSIZE)cb : KSIZE_MAX;
         }
 
         cb = KLDR_ALIGN_ADDR(pDstSeg->cb, pDstSeg->Alignment);
@@ -1439,7 +1439,7 @@ static int  kldrModMachOParseLoadCommands(PKLDRMODMACHO pModMachO, char *pbStrin
         pDstSeg->offFile = -1;
         pDstSeg->cbFile  = -1;
         pDstSeg->RVA = pModMachO->GotRVA;
-        pDstSeg->cbMapped = KLDR_ALIGN_ADDR(cbGot + cbJmpStubs, pDstSeg->Alignment);
+        pDstSeg->cbMapped = (KSIZE)KLDR_ALIGN_ADDR(cbGot + cbJmpStubs, pDstSeg->Alignment);
         pDstSeg->MapAddress = 0;
 
         pSegExtra->iOrgSegNo = KU32_MAX;
