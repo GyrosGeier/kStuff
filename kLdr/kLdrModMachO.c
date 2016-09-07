@@ -653,7 +653,7 @@ static int  kldrModMachOPreParseLoadCommands(KU8 *pbLoadCommands, const mach_hea
                     KLDRMODMACHO_CHECK_RETURN(   pSrcSeg->filesize <= pSrcSeg->vmsize \
                                               || (fSkipSeg && !kHlpStrComp(pSrcSeg->segname, "__CTF") /* see above */), \
                                               KLDR_ERR_MACHO_BAD_LOAD_COMMAND); \
-                    KLDRMODMACHO_CHECK_RETURN((pSrcSeg->maxprot & pSrcSeg->initprot) == pSrcSeg->initprot, \
+                    KLDRMODMACHO_CHECK_RETURN(!(~pSrcSeg->maxprot & pSrcSeg->initprot), \
                                               KLDR_ERR_MACHO_BAD_LOAD_COMMAND); \
                     KLDRMODMACHO_CHECK_RETURN(!(pSrcSeg->flags & ~(SG_HIGHVM | SG_FVMLIB | SG_NORELOC | SG_PROTECTED_VERSION_1)), \
                                               KLDR_ERR_MACHO_BAD_LOAD_COMMAND); \
