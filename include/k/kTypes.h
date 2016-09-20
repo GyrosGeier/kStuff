@@ -172,7 +172,7 @@ typedef unsigned char           KU8;
 #define KI64_C(c)               (c ## LL)
 #define KU64_C(c)               (c ## ULL)
 #define KI32_C(c)               (c)
-#define KU32_C(c)               (c)
+#define KU32_C(c)               (c ## U)
 #define KI16_C(c)               (c)
 #define KU16_C(c)               (c)
 #define KI8_C(c)                (c)
@@ -245,7 +245,7 @@ typedef unsigned short          KU16;
 typedef signed char             KI8;
 typedef unsigned char           KU8;
 #define KI32_C(c)               (c)
-#define KU32_C(c)               (c)
+#define KU32_C(c)               (c ## U)
 #define KI16_C(c)               (c)
 #define KU16_C(c)               (c)
 #define KI8_C(c)                (c)
