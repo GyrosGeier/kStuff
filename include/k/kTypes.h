@@ -122,9 +122,21 @@
 /** @def KSSIZE_MIN
  * Memory size min constant.*/
 /** @def KSIZE_PRI
- * Memory size printf format. */
+ * Memory size default printf format (hex). */
+/** @def KSIZE_PRI_U
+ * Memory size unsigned decimal printf format. */
+/** @def KSIZE_PRI_I
+ * Memory size signed decimal printf format. */
+/** @def KSIZE_PRI_X
+ * Memory size hexadecimal printf format. */
 /** @def KSSIZE_PRI
- * Memory size printf format. */
+ * Memory size default printf format (hex). */
+/** @def KSSIZE_PRI_U
+ * Memory size unsigned decimal printf format. */
+/** @def KSSIZE_PRI_I
+ * Memory size signed decimal printf format. */
+/** @def KSSIZE_PRI_X
+ * Memory size hexadecimal printf format. */
 
 /** @typedef KIPTR
  * Signed integer type capable of containing a pointer value.  */
@@ -198,6 +210,9 @@ typedef KU32                    KSIZE;
 #define KSIZE_C(c)              KU32_C(c)
 #define KSIZE_MAX               KU32_MAX
 #define KSIZE_PRI               KX32_PRI
+#define KSIZE_PRI_U             KU32_PRI
+#define KSIZE_PRI_I             KI32_PRI
+#define KSIZE_PRI_X             KX32_PRI
 #define KIPTR_C(c)              KI32_C(c)
 
 typedef KI32                    KIPTR;
@@ -266,10 +281,16 @@ typedef KI64                    KSSIZE;
 #define KSSIZE_MAX              KI64_MAX
 #define KSSIZE_MIN              KI64_MIN
 #define KSSIZE_PRI              KX64_PRI
+#define KSSIZE_PRI_U            KU64_PRI
+#define KSSIZE_PRI_I            KI64_PRI
+#define KSSIZE_PRI_X            KX64_PRI
 
 typedef KU64                    KSIZE;
 #define KSIZE_C(c)              KU64_C(c)
 #define KSIZE_MAX               KU64_MAX
+#define KSIZE_PRI_U             KU64_PRI
+#define KSIZE_PRI_I             KI64_PRI
+#define KSIZE_PRI_X             KX64_PRI
 #define KSIZE_PRI               KX64_PRI
 
 typedef KI64                    KIPTR;
