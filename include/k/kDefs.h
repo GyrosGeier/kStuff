@@ -227,6 +227,7 @@
 #   else
 #    define K_ARCH   K_ARCH_SH_32
 #   endif
+#  endif
 # else
 #  error "Port Me"
 # endif
