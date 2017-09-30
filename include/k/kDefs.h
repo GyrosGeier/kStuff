@@ -322,6 +322,14 @@
   /* use K_ARCH if possible. */
 # if K_ARCH_ENDIAN != K_ENDIAN_BI
 #  define K_ENDIAN K_ARCH_ENDIAN
+# elif defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__)
+#  if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#  define K_ENDIAN K_ARCH_LITTLE
+#  elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#  define K_ENDIAN K_ARCH_BIG
+#  else
+#   error "Port Me or define K_ENDIAN."
+#  endif
 # else
 #  error "Port Me or define K_ENDIAN."
 # endif
