@@ -198,6 +198,8 @@
 #  define K_ARCH    K_ARCH_ALPHA
 # elif defined(__arm__) || defined(__arm32__)
 #  define K_ARCH    K_ARCH_ARM_32
+# elif defined(__aarch64__) || defined(__arm64__)
+#  define K_ARCH    K_ARCH_ARM_64
 # elif defined(__hppa__) && defined(__LP64__)
 #  define K_ARCH    K_ARCH_PARISC_64
 # elif defined(__hppa__)
