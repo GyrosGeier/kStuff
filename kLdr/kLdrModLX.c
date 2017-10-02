@@ -1486,6 +1486,7 @@ static int kldrModLXDoLoadBits(PKLDRMODLX pModLX, void *pvBits)
 
                 case RANGE:
                     KLDRMODLX_ASSERT(!"RANGE");
+                    /* Falls through. */
                 default:
                     rc = KLDR_ERR_LX_BAD_PAGE_MAP;
                     break;
@@ -2443,6 +2444,7 @@ static int kldrModLXRelocateBits(PKLDRMOD pMod, void *pvBits, KLDRADDR NewBaseAd
 
                     case NRRENT:
                         KLDRMODLX_ASSERT(!"NRRENT");
+                        /* Falls through. */
                     default:
                         iSelector = -1;
                         break;
