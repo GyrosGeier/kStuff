@@ -46,26 +46,28 @@
 #define K_OS_DRAGONFLY  2
 /** FreeBSD. */
 #define K_OS_FREEBSD    3
+/** GNU/Hurd. */
+#define K_OS_GNU_HURD   4
 /** GNU/kFreeBSD. */
-#define K_OS_GNU_KFBSD  4
+#define K_OS_GNU_KFBSD  5
 /** GNU/kNetBSD or GNU/NetBSD or whatever the decide to call it. */
-#define K_OS_GNU_KNBSD  5
+#define K_OS_GNU_KNBSD  6
 /** Linux. */
-#define K_OS_LINUX      6
+#define K_OS_LINUX      7
 /** NetBSD. */
-#define K_OS_NETBSD     7
+#define K_OS_NETBSD     8
 /** NT (native). */
-#define K_OS_NT         8
+#define K_OS_NT         9
 /** OpenBSD*/
-#define K_OS_OPENBSD    9
+#define K_OS_OPENBSD    10
 /** OS/2 */
-#define K_OS_OS2        10
+#define K_OS_OS2        11
 /** Solaris */
-#define K_OS_SOLARIS    11
+#define K_OS_SOLARIS    12
 /** Windows. */
-#define K_OS_WINDOWS    12
+#define K_OS_WINDOWS    13
 /** The max K_OS_* value (exclusive). */
-#define K_OS_MAX        13
+#define K_OS_MAX        14
 /** @} */
 
 /** @def K_OS
@@ -88,6 +90,8 @@
 #  define K_OS      K_OS_FREEBSD
 # elif defined(__FreeBSD_kernel__)
 #  define K_OS      K_OS_GNU_KFBSD
+# elif defined(__gnu_hurd__)
+#  define K_OS      K_OS_GNU_HURD
 # elif defined(__gnu_linux__)
 #  define K_OS      K_OS_LINUX
 # elif defined(__NetBSD__) /*??*/
