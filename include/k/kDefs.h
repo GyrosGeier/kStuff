@@ -349,7 +349,7 @@
 # endif
 #else
   /* validate the user defined value. */
-# if K_ENDIAN != K_ENDIAN_LITTLE
+# if K_ENDIAN != K_ENDIAN_LITTLE \
   && K_ENDIAN != K_ENDIAN_BIG
 #  error "K_ENDIAN must either be defined as K_ENDIAN_LITTLE or as K_ENDIAN_BIG."
 # endif
